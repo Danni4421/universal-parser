@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { executeParse } from '../utils/executor'
+import type { OutputType } from '@/types'
 
 export interface ParserEditorProps {
   value: string
   onChange: (value: string) => void
-  onParse: (result: string, error?: string) => void
+  onParse: (result: OutputType, error?: string) => void
   parserType: string
   placeholder?: string
 }
@@ -28,9 +29,9 @@ export default function ParserEditor({
   useEffect(() => {
     if (value.trim()) {
       const { result, error } = executeParse(parserType, value)
-      onParse(result, error)
+      onParse(result as OutputType, error)
     } else {
-      onParse('')
+      onParse(null)
     }
   }, [value, parserType, onParse])
 

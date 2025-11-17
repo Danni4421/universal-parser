@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ParserEditor, ParserOutput } from '../features/parser/components'
 import { useParser } from '../features/parser/stores/use-parser'
+import type { OutputType } from '@/types'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -9,7 +10,7 @@ export const Route = createFileRoute('/')({
 
 function App() {
   const [input, setInput] = useState('')
-  const [output, setOutput] = useState('')
+  const [output, setOutput] = useState<OutputType>(null)
   const [error, setError] = useState('')
 
   const { fromFormat, toFormat, setFromFormat, setToFormat } = useParser()
@@ -21,10 +22,10 @@ function App() {
     { value: 'uri', label: 'URI' },
   ]
 
-  const handleParse = (result: string, err?: string) => {
+  const handleParse = (result: OutputType, err?: string) => {
     if (err) {
       setError(err)
-      setOutput('')
+      setOutput(null)
     } else {
       setOutput(result)
       setError('')
@@ -34,7 +35,7 @@ function App() {
   const parserType = `${fromFormat}-to-${toFormat}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 p-8">
       <div className="max-w-7xl mx-auto">
         <div>
           <h1 className="text-4xl font-bold text-white mb-2">
