@@ -1,6 +1,18 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
+import Panel from './parser-panel'
+import FormatSelect from './parser-format-select'
 import { executeParse } from '../utils/executor'
 import type { OutputType } from '@/types'
+
+// ponytail: detect format by pattern, cheapest checks first
+function detectFormat(val: string): string {
+  const t = val.trim()
+  if (!t) return 'json'
+  try { JSON.parse(t); return 'string' } catch {}
+  if (/^[A-Za-z0-9+/]+=*$/.test(t) && t.length % 4 === 0) return 'base64'
+  if (/%[0-9A-Fa-f]{2}/.test(t)) return 'uri'
+  return 'string'
+}
 
 export interface ParserEditorProps {
   value: string
@@ -8,6 +20,9 @@ export interface ParserEditorProps {
   onParse: (result: OutputType, error?: string) => void
   parserType: string
   placeholder?: string
+  fromFormat: string
+  formats: { value: string; label: string }[]
+  onFromFormatChange: (format: string) => void
 }
 
 export default function ParserEditor({
@@ -16,13 +31,14 @@ export default function ParserEditor({
   onParse,
   parserType,
   placeholder = 'Enter text...',
+  fromFormat,
+  formats,
+  onFromFormatChange,
 }: ParserEditorProps) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-
   useEffect(() => {
-    if (ref.current) {
-      ref.current.style.height = 'auto'
-      ref.current.style.height = Math.max(ref.current.scrollHeight, 300) + 'px'
+    if (value.trim()) {
+      const detected = detectFormat(value)
+      if (detected !== fromFormat) onFromFormatChange(detected)
     }
   }, [value])
 
@@ -36,18 +52,15 @@ export default function ParserEditor({
   }, [value, parserType, onParse])
 
   return (
-    <div className="flex flex-col h-full">
-      <label className="block text-sm font-semibold text-gray-300 mb-3">
-        Input:
-      </label>
+    <Panel className="bg-white">
       <textarea
-        ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full flex-1 bg-slate-900 text-slate-100 p-6 font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500 min-h-[300px] rounded-lg"
+        className="flex-1 w-full bg-white text-gray-800 p-6 font-mono text-sm resize-none focus:outline-none placeholder-gray-300 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-h-0"
         spellCheck="false"
       />
-    </div>
+      <FormatSelect label="DARI:" value={fromFormat} formats={formats} onChange={onFromFormatChange} />
+    </Panel>
   )
 }

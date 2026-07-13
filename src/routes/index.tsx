@@ -2,124 +2,93 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ParserEditor, ParserOutput } from '../features/parser/components'
 import { useParser } from '../features/parser/stores/use-parser'
+import { executeParse } from '../features/parser/utils/executor'
+import HistoryList from '../features/parser/components/parser-history-list'
+import SiteFooter from '../features/parser/components/parser-site-footer'
+import type { HistoryEntry } from '../features/parser/stores/use-parser'
 import type { OutputType } from '@/types'
 
 export const Route = createFileRoute('/')({
   component: App,
 })
 
+const formats = [
+  { value: 'json', label: 'JSON' },
+  { value: 'string', label: 'String' },
+  { value: 'base64', label: 'Base64' },
+  { value: 'uri', label: 'URI' },
+]
+
 function App() {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState<OutputType>(null)
   const [error, setError] = useState('')
 
-  const { fromFormat, toFormat, setFromFormat, setToFormat } = useParser()
-
-  const formats = [
-    { value: 'json', label: 'JSON' },
-    { value: 'string', label: 'String' },
-    { value: 'base64', label: 'Base64' },
-    { value: 'uri', label: 'URI' },
-  ]
+  const { fromFormat, toFormat, setFromFormat, setToFormat, history, addHistory } = useParser()
 
   const handleParse = (result: OutputType, err?: string) => {
-    if (err) {
-      setError(err)
-      setOutput(null)
-    } else {
-      setOutput(result)
-      setError('')
-    }
+    if (err) { setError(err); setOutput(null) }
+    else { setOutput(result); setError('') }
   }
 
   const parserType = `${fromFormat}-to-${toFormat}`
 
+  const handleButton = () => {
+    if (!input.trim()) return
+    const { result, error: err } = executeParse(parserType, input)
+    handleParse(result as OutputType, err)
+    if (!err) {
+      addHistory({
+        input,
+        fromFormat,
+        toFormat,
+        preview: (typeof result === 'string' ? result : JSON.stringify(result)).slice(0, 60),
+      })
+    }
+  }
+
+  const restoreHistory = (entry: HistoryEntry) => {
+    setInput(entry.input)
+    setFromFormat(entry.fromFormat)
+    setToFormat(entry.toFormat)
+  }
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-800 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div>
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Universal Parser
-          </h1>
-          <p className="text-gray-400 mb-8">
-            Parse & convert data ke format berbeda
-          </p>
+    <div className="min-h-screen bg-[#f9f8f5] flex flex-col">
+      <main className="flex-1 flex flex-col p-8 pb-20 max-w-[1400px] mx-auto w-full">
+        <div className="grid grid-cols-2 gap-6 h-[calc(100vh-250px)]">
+          <ParserEditor
+            value={input}
+            onChange={setInput}
+            onParse={handleParse}
+            parserType={parserType}
+            fromFormat={fromFormat}
+            formats={formats}
+            onFromFormatChange={setFromFormat}
+          />
+          <ParserOutput
+            output={output}
+            error={error}
+            toFormat={toFormat}
+            formats={formats}
+            onToFormatChange={setToFormat}
+          />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Format Selector */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* From Format */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Dari Format:
-                </label>
-                <select
-                  value={fromFormat}
-                  onChange={(e) => setFromFormat(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                >
-                  {formats.map((fmt) => (
-                    <option key={fmt.value} value={fmt.value}>
-                      {fmt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* To Format */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Ke Format:
-                </label>
-                <select
-                  value={toFormat}
-                  onChange={(e) => setToFormat(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                >
-                  {formats.map((fmt) => (
-                    <option key={fmt.value} value={fmt.value}>
-                      {fmt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <p className="text-gray-400 text-sm mt-3">
-              Konversi:{' '}
-              <span className="text-blue-400 font-semibold">
-                {fromFormat.toUpperCase()}
-              </span>{' '}
-              →{' '}
-              <span className="text-blue-400 font-semibold">
-                {toFormat.toUpperCase()}
-              </span>
-            </p>
-          </div>
-
-          <div>
-            <ParserEditor
-              value={input}
-              onChange={setInput}
-              onParse={handleParse}
-              parserType={parserType}
-            />
-          </div>
-
-          <div>
-            <ParserOutput output={output} error={error} />
-          </div>
+        <div className="flex flex-col items-center mt-8 mb-4 gap-3">
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button
+            onClick={handleButton}
+            className="px-8 py-3 bg-black text-white text-base font-medium rounded-full flex items-center gap-2 hover:bg-gray-800 transition-colors cursor-pointer"
+          >
+            Proses Konversi <span>⚡</span>
+          </button>
         </div>
 
-        {/* Error Display */}
-        {error && (
-          <div className="mt-6 p-4 bg-red-900/30 border border-red-700 rounded-lg">
-            <p className="text-red-300 text-sm">{error}</p>
-          </div>
-        )}
-      </div>
+        <HistoryList history={history} onRestore={restoreHistory} />
+      </main>
+
+      <SiteFooter />
     </div>
   )
 }
