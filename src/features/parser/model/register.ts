@@ -5,6 +5,7 @@ import { jsonToString } from '../lib/json/json-to-string'
 import { stringToJSON } from '../lib/json/string-to-json'
 import { jsonToUri } from '../lib/uri/json-to-uri'
 import { uriToJson } from '../lib/uri/uri-to-json'
+import { stringToGraphQL } from '../lib/graphql/string-to-graphql'
 import { pool } from './pool'
 
 export const registerParsers = (): void => {
@@ -15,4 +16,5 @@ export const registerParsers = (): void => {
   pool.register('string-to-json', stringToJSON)
   pool.register('json-to-uri', jsonToUri)
   pool.register('uri-to-json', uriToJson)
+  pool.register('string-to-graphql', stringToGraphQL)
 }

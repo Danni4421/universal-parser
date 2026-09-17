@@ -1,1 +1,1 @@
-export type OutputType = 'string' | 'json' | 'base64' | 'uri' | null
+export type OutputType = 'string' | 'json' | 'base64' | 'uri' | 'graphql' | null

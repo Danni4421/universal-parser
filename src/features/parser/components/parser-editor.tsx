@@ -11,6 +11,7 @@ function detectFormat(val: string): string {
   try { JSON.parse(t); return 'string' } catch {}
   if (/^[A-Za-z0-9+/]+=*$/.test(t) && t.length % 4 === 0) return 'base64'
   if (/%[0-9A-Fa-f]{2}/.test(t)) return 'uri'
+  if (/^\s*(query|mutation|subscription|[\{\(])/i.test(t)) return 'graphql'
   return 'string'
 }
 

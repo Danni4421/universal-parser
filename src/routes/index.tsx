@@ -17,6 +17,7 @@ const formats = [
   { value: 'string', label: 'String' },
   { value: 'base64', label: 'Base64' },
   { value: 'uri', label: 'URI' },
+  { value: 'graphql', label: 'GraphQL' },
 ]
 
 function App() {
