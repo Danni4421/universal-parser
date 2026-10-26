@@ -1,5 +1,5 @@
-export const jsonToUri = (data: unknown): string => {
-  const jsonString = JSON.stringify(data)
+export const jsonToUri = (input: string): string => {
+  const jsonString = JSON.stringify(JSON.parse(input))
   const encodedJson = encodeURIComponent(jsonString)
   return `data:application/json,${encodedJson}`
 }

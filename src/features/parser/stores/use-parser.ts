@@ -13,7 +13,7 @@ export interface HistoryEntry {
 export interface ParserState {
   fromFormat: string
   toFormat: string
-  history: HistoryEntry[]
+  history: Array<HistoryEntry>
   setFromFormat: (format: string) => void
   setToFormat: (format: string) => void
   addHistory: (entry: Omit<HistoryEntry, 'id' | 'at'>) => void
@@ -23,7 +23,7 @@ export interface ParserState {
 const initialState = {
   fromFormat: 'json',
   toFormat: 'base64',
-  history: [] as HistoryEntry[],
+  history: [] as Array<HistoryEntry>,
 }
 
 export const useParser = create<ParserState>()(
@@ -34,12 +34,31 @@ export const useParser = create<ParserState>()(
       setToFormat: (format) => set({ toFormat: format }),
       // ponytail: unshift new entry, slice to 10 (drops oldest at bottom)
       addHistory: (entry) =>
-        set((s) => ({
-          history: [
-            { ...entry, id: crypto.randomUUID(), at: Date.now() },
-            ...s.history,
-          ].slice(0, 10),
-        })),
+        set((s) => {
+          const existing = s.history.find(
+            (h) =>
+              h.input === entry.input &&
+              h.fromFormat === entry.fromFormat &&
+              h.toFormat === entry.toFormat,
+          )
+
+          if (existing) {
+            if (s.history[0]?.id === existing.id) return s
+            return {
+              history: [
+                { ...existing, at: Date.now() },
+                ...s.history.filter((h) => h.id !== existing.id),
+              ].slice(0, 10),
+            }
+          }
+
+          return {
+            history: [
+              { ...entry, id: crypto.randomUUID(), at: Date.now() },
+              ...s.history,
+            ].slice(0, 10),
+          }
+        }),
       reset: () => set(initialState),
     }),
     { name: 'parser-store' },

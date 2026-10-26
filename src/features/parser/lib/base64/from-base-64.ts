@@ -1,3 +1,5 @@
 export const fromBase64 = (input: string): string => {
-  return Buffer.from(input, 'base64').toString('utf-8')
+  const binary = atob(input.trim())
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+  return new TextDecoder().decode(bytes)
 }

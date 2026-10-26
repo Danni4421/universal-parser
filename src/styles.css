@@ -136,3 +136,14 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+/* In-panel find results (CSS Custom Highlight API) */
+::highlight(parser-find-match) {
+  background-color: rgb(253 230 138 / 0.7);
+  color: inherit;
+}
+
+::highlight(parser-find-active) {
+  background-color: rgb(251 146 60 / 0.85);
+  color: rgb(17 24 39);
+}

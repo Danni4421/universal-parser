@@ -13,7 +13,11 @@ export const executeParse = (
     }
 
     if (!pool.has(parserType)) {
-      return { result: '', error: `Parser type "${parserType}" not available` }
+      const [from = '', to = ''] = parserType.split('-to-')
+      return {
+        result: '',
+        error: `Conversion ${from.toUpperCase()} -> ${to.toUpperCase()} is not supported yet. Pick another output format.`,
+      }
     }
 
     const result = pool.parse(parserType, input)
